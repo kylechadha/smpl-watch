@@ -1,5 +1,6 @@
 import Toybox.Graphics;
 import Toybox.Lang;
+import Toybox.Math;
 
 // Shared drawing utilities used across all face renderers
 module Draw {

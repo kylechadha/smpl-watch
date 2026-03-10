@@ -1,4 +1,5 @@
 import Toybox.Graphics;
+import Toybox.Lang;
 
 module Colors {
     // Active mode colors

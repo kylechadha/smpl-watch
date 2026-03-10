@@ -5,6 +5,7 @@ import Toybox.Time;
 import Toybox.Time.Gregorian;
 import Toybox.Lang;
 import Toybox.Activity;
+import Toybox.Position;
 
 module Data {
 
@@ -104,20 +105,31 @@ module Data {
     function getSunEvent() as String {
         // Show sunrise if before noon, sunset if after
         var ct = System.getClockTime();
-        var loc = Activity.getActivityInfo().currentLocation;
         if (Weather has :getSunrise && Weather has :getSunset) {
             var now = Time.now();
-            if (ct.hour < 12) {
-                var sr = Weather.getSunrise();
-                if (sr != null) {
-                    var srInfo = Gregorian.info(sr, Time.FORMAT_SHORT);
-                    return srInfo.hour.format("%d") + ":" + srInfo.min.format("%02d");
+            var loc = null;
+            var info = Activity.getActivityInfo();
+            if (info != null) { loc = info.currentLocation; }
+            if (loc == null) {
+                // Try weather conditions for location
+                if (Weather has :getCurrentConditions) {
+                    var cond = Weather.getCurrentConditions();
+                    if (cond != null) { loc = cond.observationLocationPosition; }
                 }
-            } else {
-                var ss = Weather.getSunset();
-                if (ss != null) {
-                    var ssInfo = Gregorian.info(ss, Time.FORMAT_SHORT);
-                    return ssInfo.hour.format("%d") + ":" + ssInfo.min.format("%02d");
+            }
+            if (loc != null) {
+                if (ct.hour < 12) {
+                    var sr = Weather.getSunrise(loc, now);
+                    if (sr != null) {
+                        var srInfo = Gregorian.info(sr, Time.FORMAT_SHORT);
+                        return srInfo.hour.format("%d") + ":" + srInfo.min.format("%02d");
+                    }
+                } else {
+                    var ss = Weather.getSunset(loc, now);
+                    if (ss != null) {
+                        var ssInfo = Gregorian.info(ss, Time.FORMAT_SHORT);
+                        return ssInfo.hour.format("%d") + ":" + ssInfo.min.format("%02d");
+                    }
                 }
             }
         }
