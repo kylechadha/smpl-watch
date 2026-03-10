@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venu 3S Watch Face Concepts</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&family=JetBrains+Mono:wght@300;400;500;600&family=Orbitron:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0a0a0a;color:#e0e0e0;font-family:'Inter',sans-serif;min-height:100vh}
+  header{text-align:center;padding:40px 20px 10px}
+  header h1{font-weight:300;font-size:28px;letter-spacing:2px;color:#fff}
+  header p{font-size:14px;color:#666;margin-top:8px}
+  .toggle-bar{text-align:center;padding:12px;position:fixed;top:0;left:0;right:0;z-index:100;background:rgba(10,10,10,0.92);backdrop-filter:blur(12px);border-bottom:1px solid #1a1a1a}
+  .toggle-btn{background:#1a1a1a;border:1px solid #333;color:#ccc;padding:8px 24px;border-radius:20px;cursor:pointer;font-size:14px;font-family:'Inter',sans-serif;transition:all 0.2s}
+  .toggle-btn:hover{border-color:#555}
+  .toggle-btn.aod{background:#111;color:#555;border-color:#222}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(480px,1fr));gap:50px;padding:60px 40px 40px;max-width:1800px;margin:0 auto}
+  .concept{display:flex;flex-direction:column;align-items:center}
+  .concept-label{margin-bottom:16px;text-align:center}
+  .concept-label h2{font-size:18px;font-weight:400;color:#fff;letter-spacing:1px}
+  .concept-label p{font-size:12px;color:#555;margin-top:4px}
+  .watch-body{position:relative;width:420px;height:460px;background:linear-gradient(145deg,#2a2a2a,#1a1a1a);border-radius:48% 48% 48% 48%/42% 42% 42% 42%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #333,0 0 0 4px #1a1a1a,0 8px 32px rgba(0,0,0,0.6)}
+  .watch-body::after{content:'';position:absolute;right:-10px;top:44%;width:7px;height:44px;background:linear-gradient(180deg,#3a3a3a,#252525);border-radius:0 3px 3px 0}
+  .watch-screen{width:360px;height:360px;border-radius:50%;overflow:hidden}
+  canvas{display:block;width:360px;height:360px}
+</style>
+</head>
+<body>
+<header>
+  <h1>VENU 3S WATCH FACE CONCEPTS</h1>
+  <p>390 x 390 AMOLED &mdash; rendered near 1:1</p>
+</header>
+<div class="toggle-bar">
+  <button class="toggle-btn" id="toggleAod" onclick="toggleMode()">Active Display</button>
+</div>
+<div id="font-preload" style="position:absolute;left:-9999px;top:-9999px;visibility:hidden">
+  <span style="font-family:'DM Sans';font-weight:300">x</span>
+  <span style="font-family:'DM Sans';font-weight:400">x</span>
+  <span style="font-family:'DM Sans';font-weight:500">x</span>
+  <span style="font-family:'DM Sans';font-weight:600">x</span>
+  <span style="font-family:'JetBrains Mono';font-weight:300">x</span>
+  <span style="font-family:'JetBrains Mono';font-weight:400">x</span>
+  <span style="font-family:'JetBrains Mono';font-weight:500">x</span>
+  <span style="font-family:'JetBrains Mono';font-weight:600">x</span>
+  <span style="font-family:'Orbitron';font-weight:400">x</span>
+  <span style="font-family:'Orbitron';font-weight:500">x</span>
+  <span style="font-family:'Orbitron';font-weight:600">x</span>
+  <span style="font-family:'Orbitron';font-weight:700">x</span>
+  <span style="font-family:'Space Grotesk';font-weight:300">x</span>
+  <span style="font-family:'Space Grotesk';font-weight:400">x</span>
+  <span style="font-family:'Space Grotesk';font-weight:500">x</span>
+  <span style="font-family:'Space Grotesk';font-weight:600">x</span>
+  <span style="font-family:'Space Grotesk';font-weight:700">x</span>
+  <span style="font-family:'IBM Plex Mono';font-weight:300">x</span>
+  <span style="font-family:'IBM Plex Mono';font-weight:400">x</span>
+  <span style="font-family:'IBM Plex Mono';font-weight:500">x</span>
+</div>
+<div class="grid" id="grid"></div>
+<script>
+const S=390, CX=S/2, CY=S/2, R=S/2-2;
+let aod=false, entries=[];
+
+// --- Colors ---
+const C={
+  time:'#fff', date:'#555', dim:'#333', sep:'#1c1c1c',
+  steps:'#38bdf8', hr:'#f87171', bat:'#4ade80', sun:'#E8A838',
+  moon:'#7B8DC3', teal:'#2dd4bf', accent:'#818cf8',
+  track:'#111', label:'#2a2a2a'
+};
+const CA={
+  time:'#777', date:'#282828', dim:'#1a1a1a', sep:'#0e0e0e',
+  steps:'#282828', hr:'#282828', bat:'#282828', sun:'#282828',
+  moon:'#282828', teal:'#282828', accent:'#282828',
+  track:'#080808', label:'#151515'
+};
+function cc(){return aod?CA:C}
+
+// --- Helpers ---
+function clip(x){x.save();x.beginPath();x.arc(CX,CY,R,0,Math.PI*2);x.clip()}
+function bg(x){x.fillStyle='#000';x.fillRect(0,0,S,S)}
+function t(x,s,px,py,font,color,align='center',glow=null){
+  x.fillStyle=color;x.font=font;x.textAlign=align;x.textBaseline='middle';
+  if(glow&&!aod){x.shadowColor=glow.c||color;x.shadowBlur=glow.b||12;x.shadowOffsetX=0;x.shadowOffsetY=0}
+  x.fillText(s,px,py);
+  if(glow){x.shadowColor='transparent';x.shadowBlur=0}
+}
+function a(x,cx,cy,r,s,e,color,w=8){
+  x.beginPath();x.arc(cx,cy,r,(s-90)*Math.PI/180,(e-90)*Math.PI/180);
+  x.strokeStyle=color;x.lineWidth=w;x.lineCap='round';x.stroke()
+}
+function bar(x,bx,by,w,h,pct,bgc,fg,rad=3){
+  x.fillStyle=bgc;x.beginPath();x.roundRect(bx,by,w,h,rad);x.fill();
+  if(pct>0){x.fillStyle=fg;x.beginPath();x.roundRect(bx,by,Math.max(w*pct,h),h,rad);x.fill()}
+}
+function ln(x,x1,y1,x2,y2,color,w=1){
+  x.strokeStyle=color;x.lineWidth=w;x.beginPath();x.moveTo(x1,y1);x.lineTo(x2,y2);x.stroke()
+}
+function vig(x,s=0.4){
+  if(aod)return;
+  const g=x.createRadialGradient(CX,CY,R*0.5,CX,CY,R);
+  g.addColorStop(0,'rgba(0,0,0,0)');g.addColorStop(1,`rgba(0,0,0,${s})`);
+  x.fillStyle=g;x.fillRect(0,0,S,S)
+}
+function ticks(x,n,ir,or,color,w=1){
+  for(let i=0;i<n;i++){
+    const ag=(i*(360/n)-90)*Math.PI/180;
+    x.beginPath();x.moveTo(CX+ir*Math.cos(ag),CY+ir*Math.sin(ag));
+    x.lineTo(CX+or*Math.cos(ag),CY+or*Math.sin(ag));
+    x.strokeStyle=color;x.lineWidth=w;x.stroke()
+  }
+}
+function spark(x,sx,sy,w,h,data,color){
+  const mx=Math.max(...data),mn=Math.min(...data),rng=mx-mn||1,st=w/(data.length-1);
+  x.beginPath();
+  data.forEach((v,i)=>{const px=sx+i*st,py=sy+h-((v-mn)/rng)*h;i===0?x.moveTo(px,py):x.lineTo(px,py)});
+  x.strokeStyle=color;x.lineWidth=1.5;x.lineCap='round';x.lineJoin='round';x.stroke()
+}
+function gradLine(x,y,color,w=250){
+  const g=x.createLinearGradient(CX-w/2,0,CX+w/2,0);
+  g.addColorStop(0,`${color}00`);g.addColorStop(0.15,color);g.addColorStop(0.85,color);g.addColorStop(1,`${color}00`);
+  x.fillStyle=g;x.fillRect(CX-w/2,y,w,2)
+}
+
+// ============================================
+// 1. HORIZON — clean minimal, sunset only in daytime
+// ============================================
+function drawHorizon(x){
+  const c=cc();bg(x);clip(x);
+  if(!aod)ticks(x,60,R-8,R-2,'#0f0f0f',1);
+  // Time
+  t(x,'10:42',CX,140,'300 96px "DM Sans"',c.time,'center',{c:'rgba(255,255,255,0.15)',b:20});
+  // Date
+  t(x,'MON  MAR  09',CX,200,'400 20px "DM Sans"',c.date);
+  // Steps + HR
+  t(x,'\u{1F45F} 4,281',CX-55,242,'400 19px "DM Sans"',aod?c.steps:'#999');
+  t(x,'\u2665 72',CX+55,242,'500 19px "DM Sans"',c.hr);
+  // Battery + Sunset (same row)
+  t(x,'\u{1F50B} 92%',CX-55,280,'400 19px "DM Sans"',c.bat);
+  t(x,'\u263D 18:47',CX+55,280,'400 19px "DM Sans"',c.moon);
+  vig(x,0.25);x.restore()
+}
+
+// ============================================
+// 2. PULSE — arcs, Space Grotesk
+// ============================================
+function drawPulse(x){
+  const c=cc();bg(x);clip(x);
+  if(!aod){
+    a(x,CX,CY,R-16,130,340,c.track,8);
+    a(x,CX,CY,R-16,-20,95,c.track,8);
+    a(x,CX,CY,R-16,130,130+210*0.428,c.steps,8);
+    a(x,CX,CY,R-16,-20,-20+115*0.92,c.bat,8);
+    t(x,'4,281',50,CY+58,'500 13px "JetBrains Mono"',c.steps);
+    t(x,'92%',S-46,CY-60,'500 13px "JetBrains Mono"',c.bat);
+  }
+  t(x,'10:42',CX,CY-28,'500 86px "Space Grotesk"',c.time,'center',{c:'rgba(255,255,255,0.12)',b:18});
+  t(x,'Monday, Mar 9',CX,CY+22,'400 20px "DM Sans"',c.date);
+  t(x,'\u2665 72',CX-60,CY+62,'500 20px "DM Sans"',c.hr);
+  t(x,'\u263D 18:47',CX+60,CY+62,'400 20px "DM Sans"',c.sun);
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 3. VITALS — dense health data, sparklines, both bars
+// ============================================
+function drawVitals(x){
+  const c=cc();bg(x);clip(x);
+  // Time (smaller to make room)
+  t(x,'10:42',CX,80,'500 56px "Space Grotesk"',c.time,'center',{c:'rgba(255,255,255,0.1)',b:12});
+  t(x,'MON MAR 09',CX,115,'400 15px "Space Grotesk"',c.date);
+  ln(x,80,132,S-80,132,c.sep);
+  // Steps bar
+  t(x,'\u{1F45F} 4,281',90,152,'500 15px "Space Grotesk"',c.steps,'left');
+  t(x,'/ 10,000',S-90,152,'400 13px "Space Grotesk"',c.label,'right');
+  bar(x,90,165,S-180,5,0.428,c.track,aod?c.dim:c.steps,2);
+  // Battery bar
+  t(x,'\u{1F50B} 92%',90,190,'500 15px "Space Grotesk"',c.bat,'left');
+  bar(x,90,203,S-180,5,0.92,c.track,aod?c.dim:c.bat,2);
+  ln(x,80,218,S-80,218,c.sep);
+  // Health stats - 2x2 grid
+  t(x,'\u2665 72 bpm',CX-55,240,'500 16px "Space Grotesk"',c.hr);
+  t(x,'\u{1F525} 1,842 cal',CX+55,240,'400 16px "Space Grotesk"',c.sun);
+  t(x,'\u{1F4CF} 2.1 mi',CX-55,268,'400 16px "Space Grotesk"',c.teal);
+  t(x,'\u{1F3E2} 8 floors',CX+55,268,'400 16px "Space Grotesk"',c.accent);
+  ln(x,80,286,S-80,286,c.sep);
+  // HR sparkline
+  if(!aod){
+    t(x,'HR 6h',CX,300,'400 11px "Space Grotesk"',c.label);
+    const hrData=[65,68,72,70,75,78,72,68,70,72,78,80,76,72,68,72];
+    spark(x,90,308,S-180,30,hrData,c.hr)
+  }
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 4. DASHBOARD — HUD cockpit, Orbitron
+// Bands: 45-82 | 82-172 | 172-265 | 265-345
+// ============================================
+function drawDashboard(x){
+  const c=cc();bg(x);clip(x);
+  if(!aod){ticks(x,60,R-6,R-1,'#0d0d0d',1);ticks(x,12,R-12,R-1,'#181818',2)}
+  // Battery bar
+  t(x,'92%',CX,54,'500 14px "JetBrains Mono"',c.bat);
+  bar(x,CX-85,66,170,5,0.92,c.track,aod?c.dim:c.bat,2);
+  // Dividers — visible
+  ln(x,80,82,S-80,82,c.sep);ln(x,80,172,S-80,172,c.sep);ln(x,80,265,S-80,265,c.sep);
+  // Band 1: HR + sunset (midpoint y=127)
+  t(x,'\u2665 72',95,127,'500 22px "JetBrains Mono"',c.hr,'left');
+  t(x,'\u263D 18:47',S-95,127,'500 22px "JetBrains Mono"',c.sun,'right');
+  // Band 2: TIME (midpoint y=218)
+  t(x,'10:42',CX,218,'600 72px Orbitron',c.time,'center',{c:'rgba(255,255,255,0.15)',b:16});
+  // Band 3: steps + date (midpoint y=305) — wide spread to avoid overlap
+  t(x,'4,281',80,300,'500 18px "JetBrains Mono"',c.steps,'left');
+  t(x,'MON MAR 09',S-80,300,'400 15px "JetBrains Mono"',c.dim,'right');
+  vig(x,0.3);x.restore()
+}
+
+// ============================================
+// 5. ORBIT — analog + digital, 5-min ticks
+// ============================================
+function drawOrbit(x){
+  const c=cc();bg(x);clip(x);
+  // All tick marks: 60 minor + 12 major
+  for(let i=0;i<60;i++){
+    const ag=(i*6-90)*Math.PI/180;
+    const major=i%5===0, quarter=i%15===0;
+    const ir=quarter?R-50:(major?R-40:R-30), or=R-22;
+    x.beginPath();x.moveTo(CX+ir*Math.cos(ag),CY+ir*Math.sin(ag));
+    x.lineTo(CX+or*Math.cos(ag),CY+or*Math.sin(ag));
+    x.strokeStyle=quarter?(aod?'#333':'#555'):(major?(aod?'#222':'#333'):(aod?'#111':'#1a1a1a'));
+    x.lineWidth=quarter?3:(major?2:1);x.lineCap='round';x.stroke()
+  }
+  if(!aod){
+    // Hour hand
+    const ha=((10+42/60)*30-90)*Math.PI/180;
+    x.beginPath();x.moveTo(CX,CY);x.lineTo(CX+75*Math.cos(ha),CY+75*Math.sin(ha));
+    x.strokeStyle='#ddd';x.lineWidth=5;x.lineCap='round';x.stroke();
+    // Minute hand
+    const ma=(42*6-90)*Math.PI/180;
+    x.beginPath();x.moveTo(CX,CY);x.lineTo(CX+115*Math.cos(ma),CY+115*Math.sin(ma));
+    x.strokeStyle='#ddd';x.lineWidth=3;x.lineCap='round';x.stroke();
+    // Center dot
+    x.beginPath();x.arc(CX,CY,5,0,Math.PI*2);x.fillStyle='#fff';x.fill()
+  }
+  t(x,'10:42',CX,CY+50,'500 26px "JetBrains Mono"',c.time);
+  t(x,'MON 09',CX,CY-55,'400 18px "DM Sans"',c.date);
+  if(!aod){
+    t(x,'4,281',CX-65,CY+88,'400 17px "DM Sans"',c.steps);
+    t(x,'\u263D 18:47',CX+65,CY+88,'400 17px "DM Sans"',c.sun);
+    t(x,'92%',CX-30,CY+114,'400 15px "DM Sans"',c.dim);
+    t(x,'\u2665 72',CX+30,CY+114,'400 15px "DM Sans"',c.hr)
+  }
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 6. DASHBOARD II — steps hero (fav)
+// Bands: 45-82 | 82-172 | 172-265 | 265-340
+// ============================================
+function drawDashboard2(x){
+  const c=cc();bg(x);clip(x);
+  if(!aod){ticks(x,60,R-6,R-1,'#0d0d0d',1);ticks(x,12,R-12,R-1,'#181818',2)}
+  // Steps bar at top — single centered line
+  t(x,'4,281 / 10,000',CX,54,'400 13px "JetBrains Mono"',c.steps);
+  bar(x,CX-85,66,170,5,0.428,c.track,aod?c.dim:c.steps,2);
+  // Dividers
+  ln(x,80,82,S-80,82,c.sep);ln(x,80,172,S-80,172,c.sep);ln(x,80,265,S-80,265,c.sep);
+  // Band 1: HR + battery (y=127)
+  t(x,'\u2665 72',95,127,'500 22px "JetBrains Mono"',c.hr,'left');
+  t(x,'92%',S-95,127,'500 22px "JetBrains Mono"',c.bat,'right');
+  // Band 2: TIME (y=218)
+  t(x,'10:42',CX,218,'600 72px Orbitron',c.time,'center',{c:'rgba(255,255,255,0.15)',b:16});
+  // Band 3: sunset + date (y=300)
+  t(x,'\u263D 18:47',80,300,'500 16px "JetBrains Mono"',c.sun,'left');
+  t(x,'MON MAR 09',S-80,300,'400 14px "JetBrains Mono"',c.dim,'right');
+  vig(x,0.3);x.restore()
+}
+
+// ============================================
+// 7. DASHBOARD III — both bars, teal accent
+// ============================================
+function drawDashboard3(x){
+  const c=cc();bg(x);clip(x);
+  if(!aod){for(let r=60;r<R;r+=50){x.beginPath();x.arc(CX,CY,r,0,Math.PI*2);x.strokeStyle='rgba(255,255,255,0.02)';x.lineWidth=1;x.stroke()}}
+  // Top: HR, sunset — moved down to reduce gap
+  t(x,'\u2665 72',CX-65,96,'500 19px "Space Grotesk"',c.hr);
+  t(x,'\u263D 18:47',CX+65,96,'400 19px "Space Grotesk"',c.sun);
+  // Time — moved up slightly
+  t(x,'10:42',CX,CY-16,'600 82px "Space Grotesk"',c.time,'center',{c:'rgba(255,255,255,0.1)',b:14});
+  // Date
+  t(x,'MON  MAR  09',CX,CY+32,'400 18px "Space Grotesk"',c.date);
+  // Steps bar — left-aligned count, right-aligned goal, bar below both
+  const bx=CX-90, bw=180;
+  t(x,'4,281',bx,CY+68,'500 18px "Space Grotesk"',c.teal,'left');
+  t(x,'/ 10,000',bx+bw,CY+68,'400 14px "Space Grotesk"',c.label,'right');
+  bar(x,bx,CY+82,bw,4,0.428,c.track,aod?c.dim:c.teal,2);
+  // Battery bar
+  t(x,'\u{1F50B} 92%',bx,CY+105,'400 15px "Space Grotesk"',c.bat,'left');
+  bar(x,bx,CY+119,bw,4,0.92,c.track,aod?c.dim:c.bat,2);
+  vig(x,0.25);x.restore()
+}
+
+// ============================================
+// 8. TERMINAL — dev console, centered
+// ============================================
+function drawTerminal(x){
+  const c=cc();bg(x);clip(x);
+  const grn=c.bat;
+  // Subtle dot grid
+  if(!aod){x.fillStyle='rgba(255,255,255,0.03)';for(let gx=30;gx<S;gx+=20)for(let gy=30;gy<S;gy+=20){const dx=gx-CX,dy=gy-CY;if(dx*dx+dy*dy<(R-20)*(R-20)){x.beginPath();x.arc(gx,gy,0.8,0,Math.PI*2);x.fill()}}}
+  // Status line — health summary: OK if all good, WARN if HR>100, CRIT if HR>140
+  // (in real build: dynamic based on HR, body battery, stress)
+  t(x,'> health',CX-38,75,'400 14px "JetBrains Mono"',c.label,'right');
+  t(x,'OK',CX+38,75,'500 14px "JetBrains Mono"',grn,'left');
+  ln(x,82,90,S-82,90,c.sep);
+  // Time — moved up slightly to reduce gap
+  t(x,'10:42',CX,CY-34,'600 72px "JetBrains Mono"',c.time,'center',{c:'rgba(74,222,128,0.06)',b:20});
+  // Date
+  t(x,'MON MAR 09',CX,CY+10,'400 16px "JetBrains Mono"',c.date);
+  ln(x,82,CY+26,S-82,CY+26,c.sep);
+  // Key:value — centered block, tighter columns
+  const col1=CX-12, col2=CX+12, baseY=CY+48, rh=26;
+  t(x,'steps',col1,baseY,'400 14px "JetBrains Mono"',c.label,'right');
+  t(x,'4,281',col2,baseY,'500 14px "JetBrains Mono"',c.steps,'left');
+  t(x,'heart',col1,baseY+rh,'400 14px "JetBrains Mono"',c.label,'right');
+  t(x,'72 bpm',col2,baseY+rh,'500 14px "JetBrains Mono"',c.hr,'left');
+  t(x,'bat',col1,baseY+rh*2,'400 14px "JetBrains Mono"',c.label,'right');
+  t(x,'92%',col2,baseY+rh*2,'500 14px "JetBrains Mono"',grn,'left');
+  t(x,'sunset',col1,baseY+rh*3,'400 14px "JetBrains Mono"',c.label,'right');
+  t(x,'18:47',col2,baseY+rh*3,'500 14px "JetBrains Mono"',c.sun,'left');
+  vig(x,0.35);x.restore()
+}
+
+// ============================================
+// 9. STRATA — layered bands, /10,000 goal
+// ============================================
+function drawStrata(x){
+  const c=cc();bg(x);clip(x);
+  // Band separators
+  ln(x,70,102,S-70,102,c.sep);
+  ln(x,60,CY+42,S-60,CY+42,c.sep);
+  ln(x,70,CY+112,S-70,CY+112,c.sep);
+  // Top band — date + battery (moved down from 72 to 80)
+  t(x,'MON MAR 09',CX-30,80,'400 18px "Space Grotesk"',c.date);
+  t(x,'92%',CX+80,80,'400 18px "Space Grotesk"',c.bat);
+  // Time
+  t(x,'10:42',CX,CY-12,'500 96px "Space Grotesk"',c.time,'center',{c:'rgba(255,255,255,0.1)',b:16});
+  // Steps with goal
+  t(x,'4,281',CX-40,CY+65,'500 22px "Space Grotesk"',c.steps,'right');
+  t(x,'/ 10,000',CX-32,CY+65,'400 14px "Space Grotesk"',c.label,'left');
+  bar(x,85,CY+82,S-170,4,0.428,c.track,aod?c.dim:c.steps,2);
+  // Bottom band — HR + sunset
+  t(x,'\u2665 72',CX-55,CY+132,'500 20px "Space Grotesk"',c.hr);
+  t(x,'\u263D 18:47',CX+55,CY+132,'400 20px "Space Grotesk"',c.sun);
+  vig(x,0.25);x.restore()
+}
+
+// ============================================
+// 10. SIGNAL — minimal, indigo accent, gradient bar
+// ============================================
+function drawSignal(x){
+  const c=cc();bg(x);clip(x);
+  // Subtle rings
+  if(!aod){for(let r=80;r<R;r+=60){x.beginPath();x.arc(CX,CY,r,0,Math.PI*2);x.strokeStyle='rgba(129,140,248,0.04)';x.lineWidth=1;x.stroke()}}
+  // Sunset — positioned cleanly top-right
+  t(x,'\u263D 18:47',S-85,78,'400 16px "DM Sans"',c.sun,'right');
+  // Time
+  t(x,'10:42',CX,CY-38,'300 94px "DM Sans"',c.time,'center',{c:'rgba(129,140,248,0.1)',b:18});
+  // Date
+  t(x,'MON  MAR  09',CX,CY+18,'400 19px "DM Sans"',c.date);
+  // Gradient accent line
+  if(!aod)gradLine(x,CY+42,c.accent);
+  else ln(x,CX-100,CY+42,CX+100,CY+42,c.dim);
+  // Steps hero
+  t(x,'4,281 steps',CX,CY+72,'500 22px "Space Grotesk"',c.accent);
+  // Bottom row — evenly spaced
+  t(x,'\u2665 72',CX-65,CY+108,'400 19px "DM Sans"',c.hr);
+  t(x,'92%',CX+65,CY+108,'400 19px "DM Sans"',c.bat);
+  vig(x,0.3);x.restore()
+}
+
+// ============================================
+// 11. DASHBOARD IV — Ultra-dense 8-stat grid
+// ============================================
+function drawDashboard4(x){
+  const c=cc();bg(x);clip(x);
+  if(!aod){ticks(x,60,R-6,R-1,'#0d0d0d',1)}
+  // Time
+  t(x,'10:42',CX,78,'600 52px Orbitron',c.time,'center',{c:'rgba(255,255,255,0.12)',b:12});
+  t(x,'MON MAR 09',CX,108,'400 13px "JetBrains Mono"',c.date);
+  ln(x,80,122,S-80,122,c.sep);
+  // 2-column grid, 4 rows
+  const L=CX-60, Ri=CX+60, rh=26, y0=142;
+  t(x,'\u{1F45F} 4,281',L,y0,'500 15px "Space Grotesk"',c.steps);
+  t(x,'\u2665 72',Ri,y0,'500 15px "Space Grotesk"',c.hr);
+  t(x,'\u{1F4CF} 2.1 mi',L,y0+rh,'400 15px "Space Grotesk"',c.teal);
+  t(x,'\u{1F525} 1,842',Ri,y0+rh,'400 15px "Space Grotesk"',c.sun);
+  t(x,'\u{1F50B} 92%',L,y0+rh*2,'400 15px "Space Grotesk"',c.bat);
+  t(x,'\u{1F3E2} 8 fl',Ri,y0+rh*2,'400 15px "Space Grotesk"',c.accent);
+  t(x,'\u26A1 72',L,y0+rh*3,'400 15px "Space Grotesk"',c.sun);
+  t(x,'\u{1F60C} Low',Ri,y0+rh*3,'400 15px "Space Grotesk"',c.bat);
+  ln(x,80,y0+rh*3+18,S-80,y0+rh*3+18,c.sep);
+  // Steps bar
+  bar(x,85,y0+rh*3+30,S-170,4,0.428,c.track,aod?c.dim:c.steps,2);
+  // HR sparkline
+  if(!aod){
+    const hrD=[65,68,72,70,75,78,72,68,70,72,78,80,76,72,68,72];
+    spark(x,85,y0+rh*3+46,S-170,40,hrD,c.hr)
+  }
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 12. NORDIC — Ultra-clean, maximum whitespace
+// ============================================
+function drawNordic(x){
+  const c=cc();bg(x);clip(x);
+  t(x,'10:42',CX,CY-20,'200 110px "DM Sans"',c.time,'center',{c:'rgba(255,255,255,0.08)',b:25});
+  t(x,'Monday, March 9',CX,CY+38,'400 18px "DM Sans"',c.date);
+  t(x,'4,281 steps',CX,CY+80,'400 18px "DM Sans"',c.dim);
+  vig(x,0.15);x.restore()
+}
+
+// ============================================
+// 13. TACTICAL — Military field watch
+// ============================================
+function drawTactical(x){
+  const c=cc();bg(x);clip(x);
+  const olive='#a3a651', sand=aod?'#333':'#d4d4a0', dimO=aod?'#1a1a1a':'#5a5a30';
+  ticks(x,60,R-8,R-2,aod?'#111':'#1a1a1a',1);
+  for(let i=0;i<12;i++){const ag=(i*30-90)*Math.PI/180;const ir=R-16,or=R-2;
+    x.beginPath();x.moveTo(CX+ir*Math.cos(ag),CY+ir*Math.sin(ag));
+    x.lineTo(CX+or*Math.cos(ag),CY+or*Math.sin(ag));
+    x.strokeStyle=aod?'#222':olive;x.lineWidth=2;x.lineCap='round';x.stroke()}
+  t(x,'10:42',CX,CY-30,'600 68px "JetBrains Mono"',aod?c.time:sand);
+  t(x,'09 MAR 2026',CX,CY+12,'400 16px "JetBrains Mono"',aod?c.date:dimO);
+  ln(x,85,CY+30,S-85,CY+30,aod?c.sep:dimO);
+  const col1=CX-15,col2=CX+15,by=CY+52,bh=22;
+  t(x,'STEPS',col1,by,'400 13px "JetBrains Mono"',dimO,'right');
+  t(x,'4,281',col2,by,'500 13px "JetBrains Mono"',aod?c.dim:sand,'left');
+  t(x,'HR',col1,by+bh,'400 13px "JetBrains Mono"',dimO,'right');
+  t(x,'72 BPM',col2,by+bh,'500 13px "JetBrains Mono"',aod?c.dim:sand,'left');
+  t(x,'BAT',col1,by+bh*2,'400 13px "JetBrains Mono"',dimO,'right');
+  t(x,'92%',col2,by+bh*2,'500 13px "JetBrains Mono"',aod?c.dim:sand,'left');
+  t(x,'SUNSET',col1,by+bh*3,'400 13px "JetBrains Mono"',dimO,'right');
+  t(x,'18:47',col2,by+bh*3,'500 13px "JetBrains Mono"',aod?c.dim:sand,'left');
+  vig(x,0.3);x.restore()
+}
+
+// ============================================
+// 14. RETRO LCD — Amber segments
+// ============================================
+function drawRetroLCD(x){
+  const c=cc();bg(x);clip(x);
+  const amber=aod?'#444':'#ffb000', dimA=aod?'#1a1a1a':'#664800';
+  // Panels
+  const px1=85,pw=S-170,py1=65,ph1=120,py2=195,ph2=130;
+  x.strokeStyle=aod?'#111':'#1a1a1a';x.lineWidth=1;
+  x.strokeRect(px1,py1,pw,ph1);x.strokeRect(px1,py2,pw,ph2);
+  // Top panel
+  t(x,'MON',px1+12,90,'500 16px "IBM Plex Mono"',amber,'left');
+  t(x,'MAR 09',px1+pw-12,90,'400 16px "IBM Plex Mono"',amber,'right');
+  t(x,'STEPS',px1+12,118,'400 12px "IBM Plex Mono"',dimA,'left');
+  t(x,'HR',px1+pw-12,118,'400 12px "IBM Plex Mono"',dimA,'right');
+  t(x,'4,281',px1+12,142,'500 20px "IBM Plex Mono"',amber,'left');
+  t(x,'72',px1+pw-12,142,'500 20px "IBM Plex Mono"',amber,'right');
+  t(x,'\u263D 18:47',px1+12,168,'400 14px "IBM Plex Mono"',dimA,'left');
+  t(x,'BAT 92%',px1+pw-12,168,'400 14px "IBM Plex Mono"',dimA,'right');
+  // Bottom panel — time
+  t(x,'10:42',CX-10,260,'600 72px Orbitron',amber,'center');
+  t(x,':27',CX+80,275,'400 28px Orbitron',dimA,'left');
+  t(x,'VENU 3S',CX,310,'400 12px "IBM Plex Mono"',dimA);
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 15. CARBON — Racing/sport, red accent
+// ============================================
+function drawCarbon(x){
+  const c=cc();bg(x);clip(x);
+  const red=aod?'#333':'#ef4444', dimR=aod?'#1a1a1a':'#7f1d1d';
+  // Hash marks at perimeter — diagonal style
+  for(let i=0;i<60;i++){
+    const ag=(i*6-90)*Math.PI/180;
+    const major=i%5===0;
+    const ir=major?R-18:R-10, or=R-3;
+    x.beginPath();x.moveTo(CX+ir*Math.cos(ag),CY+ir*Math.sin(ag));
+    x.lineTo(CX+or*Math.cos(ag),CY+or*Math.sin(ag));
+    x.strokeStyle=major?(aod?'#222':red):(aod?'#0d0d0d':'#1a1a1a');
+    x.lineWidth=major?2:1;x.lineCap='round';x.stroke()
+  }
+  t(x,'10:42',CX,CY-28,'700 74px Orbitron',c.time,'center',{c:'rgba(239,68,68,0.1)',b:16});
+  t(x,'MON MAR 09',CX,CY+14,'400 15px "JetBrains Mono"',c.date);
+  // Red accent line
+  if(!aod)gradLine(x,CY+32,red,200);
+  else ln(x,CX-80,CY+32,CX+80,CY+32,c.dim);
+  // Stats row
+  t(x,'\u{1F45F} 4,281',CX-65,CY+58,'500 16px "Space Grotesk"',aod?c.dim:red);
+  t(x,'\u2665 72',CX+65,CY+58,'500 16px "Space Grotesk"',c.hr);
+  // Bottom: battery + sunset
+  t(x,'\u{1F50B} 92%',CX-55,CY+90,'400 15px "Space Grotesk"',c.bat);
+  t(x,'\u263D 18:47',CX+55,CY+90,'400 15px "Space Grotesk"',c.sun);
+  vig(x,0.3);x.restore()
+}
+
+// ============================================
+// 16. WAVELENGTH — HR waveform as decoration
+// ============================================
+function drawWavelength(x){
+  const c=cc();bg(x);clip(x);
+  // ECG-style waveform across full width
+  if(!aod){
+    x.beginPath();
+    const wy=110, pts=[0,0,0,0,0,2,-1,8,-18,22,-5,0,0,0,3,-2,0,0,0,0,0,2,-1,8,-18,22,-5,0,0,0,3,-2,0,0];
+    const sw=S/pts.length;
+    pts.forEach((p,i)=>{const px=i*sw,py=wy-p*2.5;i===0?x.moveTo(px,py):x.lineTo(px,py)});
+    x.strokeStyle=c.hr;x.lineWidth=2;x.lineCap='round';x.lineJoin='round';x.stroke();
+    // Subtle glow
+    x.strokeStyle='rgba(248,113,113,0.15)';x.lineWidth=6;x.stroke()
+  }
+  // Time
+  t(x,'10:42',CX,CY-18,'300 88px "DM Sans"',c.time,'center',{c:'rgba(248,113,113,0.08)',b:20});
+  t(x,'MON  MAR  09',CX,CY+30,'400 18px "DM Sans"',c.date);
+  // Stats
+  t(x,'\u2665 72 bpm',CX,CY+70,'500 20px "Space Grotesk"',c.hr);
+  t(x,'\u{1F45F} 4,281',CX-60,CY+105,'400 16px "DM Sans"',c.steps);
+  t(x,'92%',CX+60,CY+105,'400 16px "DM Sans"',c.bat);
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 17. GRID — Clean 2x3 cells, thin dividers
+// ============================================
+function drawGrid(x){
+  const c=cc();bg(x);clip(x);
+  // Time centered
+  t(x,'10:42',CX,CY-50,'500 72px "Space Grotesk"',c.time,'center',{c:'rgba(255,255,255,0.08)',b:14});
+  t(x,'MON MAR 09',CX,CY-6,'400 16px "Space Grotesk"',c.date);
+  // Grid: 2 cols x 3 rows below time
+  const gx1=80, gx2=CX, gx3=S-80;
+  const gy0=CY+20, gy1=CY+52, gy2=CY+88, gy3=CY+124;
+  // Dividers
+  ln(x,gx1,gy0,gx3,gy0,c.sep);
+  ln(x,CX,gy0,CX,gy3,c.sep);
+  ln(x,gx1,gy1+4,gx3,gy1+4,c.sep);
+  ln(x,gx1,gy2+4,gx3,gy2+4,c.sep);
+  // Cells — label + value
+  const lf='400 11px "Space Grotesk"', vf='500 18px "Space Grotesk"';
+  const cl=(gx1+gx2)/2, cr=(gx2+gx3)/2;
+  t(x,'STEPS',cl,gy0+14,lf,c.label);t(x,'4,281',cl,gy0+32,vf,c.steps);
+  t(x,'HEART',cr,gy0+14,lf,c.label);t(x,'72',cr,gy0+32,vf,c.hr);
+  t(x,'BATTERY',cl,gy1+18,lf,c.label);t(x,'92%',cl,gy1+36,vf,c.bat);
+  t(x,'SUNSET',cr,gy1+18,lf,c.label);t(x,'18:47',cr,gy1+36,vf,c.sun);
+  t(x,'DISTANCE',cl,gy2+18,lf,c.label);t(x,'2.1 mi',cl,gy2+36,vf,c.teal);
+  t(x,'CALORIES',cr,gy2+18,lf,c.label);t(x,'1,842',cr,gy2+36,vf,c.sun);
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 18. STEALTH — Nearly invisible, ultra-dim
+// ============================================
+function drawStealth(x){
+  const c=cc();bg(x);clip(x);
+  const ghost=aod?'#1a1a1a':'#2a2a2a', faint=aod?'#111':'#1e1e1e';
+  // Perimeter ring — barely visible
+  if(!aod){x.beginPath();x.arc(CX,CY,R-15,0,Math.PI*2);x.strokeStyle='#111';x.lineWidth=1;x.stroke()}
+  t(x,'10:42',CX,CY-20,'300 90px "DM Sans"',aod?'#333':'#444','center');
+  t(x,'MON MAR 09',CX,CY+30,'400 16px "DM Sans"',ghost);
+  t(x,'4,281',CX-55,CY+68,'400 16px "DM Sans"',faint);
+  t(x,'\u2665 72',CX+55,CY+68,'400 16px "DM Sans"',faint);
+  vig(x,0.1);x.restore()
+}
+
+// ============================================
+// 19. FLUX — Gradient time text, vibrant
+// ============================================
+function drawFlux(x){
+  const c=cc();bg(x);clip(x);
+  // Gradient time: blue → purple → pink
+  if(!aod){
+    x.font='600 88px "Space Grotesk"';x.textAlign='center';x.textBaseline='middle';
+    const g=x.createLinearGradient(CX-100,CY-40,CX+100,CY-40);
+    g.addColorStop(0,'#38bdf8');g.addColorStop(0.5,'#818cf8');g.addColorStop(1,'#f472b6');
+    x.fillStyle=g;
+    x.shadowColor='rgba(129,140,248,0.2)';x.shadowBlur=20;
+    x.fillText('10:42',CX,CY-22);
+    x.shadowColor='transparent';x.shadowBlur=0
+  } else {
+    t(x,'10:42',CX,CY-22,'600 88px "Space Grotesk"',c.time)
+  }
+  t(x,'MON  MAR  09',CX,CY+26,'400 18px "DM Sans"',c.date);
+  if(!aod)gradLine(x,CY+46,'#818cf8',220);
+  // Stats
+  t(x,'\u{1F45F} 4,281',CX-65,CY+72,'400 17px "DM Sans"',c.steps);
+  t(x,'\u2665 72',CX+65,CY+72,'400 17px "DM Sans"',c.hr);
+  t(x,'\u{1F50B} 92%',CX-55,CY+104,'400 15px "DM Sans"',c.bat);
+  t(x,'\u263D 18:47',CX+55,CY+104,'400 15px "DM Sans"',c.sun);
+  vig(x,0.2);x.restore()
+}
+
+// ============================================
+// 20. ATLAS — Dual timezone display
+// ============================================
+function drawAtlas(x){
+  const c=cc();bg(x);clip(x);
+  // Primary time — large
+  t(x,'10:42',CX,CY-35,'500 80px "Space Grotesk"',c.time,'center',{c:'rgba(255,255,255,0.08)',b:16});
+  // Secondary timezone — smaller, accent color
+  t(x,'NYC',CX-75,CY+14,'400 13px "JetBrains Mono"',c.label);
+  t(x,'13:42',CX-75,CY+34,'500 22px "JetBrains Mono"',c.accent);
+  t(x,'TYO',CX+75,CY+14,'400 13px "JetBrains Mono"',c.label);
+  t(x,'00:42',CX+75,CY+34,'500 22px "JetBrains Mono"',c.teal);
+  ln(x,80,CY+52,S-80,CY+52,c.sep);
+  // Date
+  t(x,'MON MAR 09',CX,CY-6,'400 16px "DM Sans"',c.date);
+  // Bottom stats
+  t(x,'\u{1F45F} 4,281',CX-60,CY+76,'400 16px "DM Sans"',c.steps);
+  t(x,'\u2665 72',CX+60,CY+76,'400 16px "DM Sans"',c.hr);
+  t(x,'\u{1F50B} 92%',CX,CY+104,'400 15px "DM Sans"',c.bat);
+  vig(x,0.2);x.restore()
+}
+
+// ---- Concepts ----
+const CONCEPTS=[
+  {name:"Horizon",desc:"Clean minimal, sunrise/sunset by time of day",draw:drawHorizon},
+  {name:"Pulse",desc:"Progress arcs, Space Grotesk time",draw:drawPulse},
+  {name:"Vitals",desc:"Dense health data, sparklines, both bars",draw:drawVitals},
+  {name:"Dashboard",desc:"\u2b50 HUD cockpit, Orbitron, technical",draw:drawDashboard},
+  {name:"Orbit",desc:"Analog hands + digital, 5-min ticks",draw:drawOrbit},
+  {name:"Dashboard II",desc:"\u2b50 Steps hero, current fav",draw:drawDashboard2},
+  {name:"Dashboard III",desc:"Both bars (steps + battery), teal",draw:drawDashboard3},
+  {name:"Terminal",desc:"Dev console, health status, key:value",draw:drawTerminal},
+  {name:"Strata",desc:"Layered bands, step goal",draw:drawStrata},
+  {name:"Signal",desc:"Minimal data-viz, indigo gradient bar",draw:drawSignal},
+  {name:"Dashboard IV",desc:"Ultra-dense, 8 stats + sparkline",draw:drawDashboard4},
+  {name:"Nordic",desc:"Ultra-clean, maximum whitespace",draw:drawNordic},
+  {name:"Tactical",desc:"Military field watch, olive/sand",draw:drawTactical},
+  {name:"Retro LCD",desc:"Amber segments, IBM Plex Mono",draw:drawRetroLCD},
+  {name:"Carbon",desc:"Racing/sport, red accent, Orbitron",draw:drawCarbon},
+  {name:"Wavelength",desc:"HR waveform decoration, elegant",draw:drawWavelength},
+  {name:"Grid",desc:"Clean 2x3 stat cells, thin dividers",draw:drawGrid},
+  {name:"Stealth",desc:"Nearly invisible, ultra-dim, AMOLED dark",draw:drawStealth},
+  {name:"Flux",desc:"Gradient time text, blue\u2192purple\u2192pink",draw:drawFlux},
+  {name:"Atlas",desc:"Dual timezone (NYC + Tokyo)",draw:drawAtlas},
+];
+
+// ---- Render ----
+function render(){
+  const grid=document.getElementById('grid');
+  grid.innerHTML='';
+  entries=[];
+  CONCEPTS.forEach((c,i)=>{
+    const div=document.createElement('div');div.className='concept';
+    const label=document.createElement('div');label.className='concept-label';
+    label.innerHTML=`<h2>${i+1}. ${c.name}</h2><p>${c.desc}</p>`;
+    const body=document.createElement('div');body.className='watch-body';
+    const screen=document.createElement('div');screen.className='watch-screen';
+    const canvas=document.createElement('canvas');
+    canvas.width=S*2;canvas.height=S*2;
+    const ctx=canvas.getContext('2d');ctx.scale(2,2);
+    c.draw(ctx);
+    entries.push({ctx,draw:c.draw,canvas});
+    screen.appendChild(canvas);body.appendChild(screen);
+    div.appendChild(label);div.appendChild(body);grid.appendChild(div)
+  })
+}
+function rerender(){
+  entries.forEach(e=>{
+    e.ctx.setTransform(2,0,0,2,0,0);
+    e.ctx.clearRect(0,0,S,S);
+    e.draw(e.ctx)
+  })
+}
+function toggleMode(){
+  aod=!aod;
+  const btn=document.getElementById('toggleAod');
+  btn.textContent=aod?'Always-On Display':'Active Display';
+  btn.classList.toggle('aod',aod);
+  rerender()
+}
+document.fonts.ready.then(()=>render());
+</script>
+</body>
+</html>
