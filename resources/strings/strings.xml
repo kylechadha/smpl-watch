@@ -1,0 +1,11 @@
+<strings>
+    <string id="AppName">smpl watch</string>
+    <string id="FaceLabel">Watch Face</string>
+    <string id="FaceHorizon">Horizon</string>
+    <string id="FaceVitals">Vitals</string>
+    <string id="FaceStrata">Strata</string>
+    <string id="FaceSignal">Signal</string>
+    <string id="FaceTactical">Tactical</string>
+    <string id="FaceRetroLcd">Retro LCD</string>
+    <string id="FaceGrid">Grid</string>
+</strings>

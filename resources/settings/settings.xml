@@ -1,0 +1,13 @@
+<settings>
+    <setting propertyKey="@Properties.ActiveFace" title="@Strings.FaceLabel">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FaceHorizon</listEntry>
+            <listEntry value="1">@Strings.FaceVitals</listEntry>
+            <listEntry value="2">@Strings.FaceStrata</listEntry>
+            <listEntry value="3">@Strings.FaceSignal</listEntry>
+            <listEntry value="4">@Strings.FaceTactical</listEntry>
+            <listEntry value="5">@Strings.FaceRetroLcd</listEntry>
+            <listEntry value="6">@Strings.FaceGrid</listEntry>
+        </settingConfig>
+    </setting>
+</settings>
