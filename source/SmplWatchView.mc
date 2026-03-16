@@ -34,8 +34,8 @@ class SmplWatchView extends WatchUi.WatchFace {
         // Clip to circle
         dc.setClip(0, 0, Draw.S, Draw.S);
 
-        // Get active face from settings
-        var faceIdx = Application.Properties.getValue("ActiveFace");
+        // Get active face from storage (persists on sideloaded apps)
+        var faceIdx = Application.Storage.getValue("ActiveFace");
         if (faceIdx == null || faceIdx < 0 || faceIdx >= _faces.size()) {
             faceIdx = 0;
         }

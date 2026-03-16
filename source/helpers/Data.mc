@@ -105,34 +105,62 @@ module Data {
     function getSunEvent() as String {
         // Show sunrise if before noon, sunset if after
         var ct = System.getClockTime();
-        if (Weather has :getSunrise && Weather has :getSunset) {
-            var now = Time.now();
-            var loc = null;
-            var info = Activity.getActivityInfo();
-            if (info != null) { loc = info.currentLocation; }
-            if (loc == null) {
-                // Try weather conditions for location
-                if (Weather has :getCurrentConditions) {
-                    var cond = Weather.getCurrentConditions();
-                    if (cond != null) { loc = cond.observationLocationPosition; }
+        if (!(Weather has :getSunrise) || !(Weather has :getSunset)) {
+            return "--:--";
+        }
+
+        var now = Time.now();
+        var loc = null;
+
+        // Try to get location from weather conditions first (most reliable)
+        if (Weather has :getCurrentConditions) {
+            try {
+                var cond = Weather.getCurrentConditions();
+                if (cond != null && cond has :observationLocationPosition) {
+                    loc = cond.observationLocationPosition;
                 }
-            }
-            if (loc != null) {
-                if (ct.hour < 12) {
-                    var sr = Weather.getSunrise(loc, now);
-                    if (sr != null) {
-                        var srInfo = Gregorian.info(sr, Time.FORMAT_SHORT);
-                        return srInfo.hour.format("%d") + ":" + srInfo.min.format("%02d");
-                    }
-                } else {
-                    var ss = Weather.getSunset(loc, now);
-                    if (ss != null) {
-                        var ssInfo = Gregorian.info(ss, Time.FORMAT_SHORT);
-                        return ssInfo.hour.format("%d") + ":" + ssInfo.min.format("%02d");
-                    }
-                }
+            } catch (e) {
+                // Location not available
+                loc = null;
             }
         }
+
+        // Fallback: try device location if available
+        if (loc == null && Position has :getCurrentLocation) {
+            try {
+                var pos = Position.getCurrentLocation();
+                if (pos != null && pos.valid) {
+                    loc = pos;
+                }
+            } catch (e) {
+                loc = null;
+            }
+        }
+
+        // If we don't have a valid location, return placeholder
+        if (loc == null) {
+            return "--:--";
+        }
+
+        try {
+            if (ct.hour < 12) {
+                var sr = Weather.getSunrise(loc, now);
+                if (sr != null) {
+                    var srInfo = Gregorian.info(sr, Time.FORMAT_SHORT);
+                    return srInfo.hour.format("%d") + ":" + srInfo.min.format("%02d");
+                }
+            } else {
+                var ss = Weather.getSunset(loc, now);
+                if (ss != null) {
+                    var ssInfo = Gregorian.info(ss, Time.FORMAT_SHORT);
+                    return ssInfo.hour.format("%d") + ":" + ssInfo.min.format("%02d");
+                }
+            }
+        } catch (e) {
+            // Weather API call failed
+            return "--:--";
+        }
+
         return "--:--";
     }
 
