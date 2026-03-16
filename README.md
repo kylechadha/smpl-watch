@@ -1,63 +1,65 @@
 # smpl-watch
 
-Custom watch face for the **Garmin Venu 3S** (390x390 round AMOLED). Built with [Connect IQ](https://developer.garmin.com/connect-iq/) and Monkey C.
+**7 standalone custom watch faces for the Garmin Venu 3S** (390x390 round AMOLED). Built with [Connect IQ](https://developer.garmin.com/connect-iq/) and Monkey C.
 
-Clean, modern, data-forward — designed for legibility and AMOLED efficiency.
+Each face is a separate, independently sideloadable app. Clean, modern, data-forward — designed for legibility and AMOLED efficiency.
 
-## Watch Faces
+## Watch Faces (7 Independent Apps)
 
-Seven designs, switchable via Garmin Connect Mobile or on-device settings. Each supports an always-on display (AOD) mode with reduced colors for AMOLED burn-in protection.
+| # | App | Style | .prg File |
+|---|-----|-------|-----------|
+| 1 | **Horizon** | Clean minimal, battery arc | `apps/horizon/bin/horizon.prg` |
+| 2 | **Vitals** | Simplified health dashboard | `apps/vitals/bin/vitals.prg` |
+| 3 | **Strata** | 3-band layout, step progress | `apps/strata/bin/strata.prg` |
+| 4 | **Signal** | Minimal data-viz, concentric rings | `apps/signal/bin/signal.prg` |
+| 5 | **Tactical** | Military aesthetic, olive/sand | `apps/tactical/bin/tactical.prg` |
+| 6 | **Retro LCD** | Amber segments, hero time | `apps/retro_lcd/bin/retro_lcd.prg` |
+| 7 | **Grid** | Clean 2x3 stat cells | `apps/grid/bin/grid.prg` |
 
-| # | Name | Style |
-|---|------|-------|
-| 1 | **Horizon** | Clean minimal, sunrise/sunset by time of day |
-| 2 | **Vitals** | Dense health data, sparklines, both progress bars |
-| 3 | **Strata** | Layered bands, step goal with progress bar |
-| 4 | **Signal** | Minimal data-viz, indigo accent line |
-| 5 | **Tactical** | Military field watch, olive/sand color scheme |
-| 6 | **Retro LCD** | Amber segments, dual-panel layout |
-| 7 | **Grid** | Clean 2x3 stat cells with thin dividers |
+See [mockups/mockups.html](mockups/mockups.html) for original 20 design concepts (open in browser).
 
-See [mockups/mockups.html](mockups/mockups.html) for all 20 design concepts (open in browser).
+## Data Displayed (All Faces)
 
-## Data Displayed
-
-- Time (digital) + date
-- Steps / step goal with progress bar
-- Heart rate (+ sparkline on Vitals)
-- Battery percentage
-- Sunrise or sunset (based on time of day)
-- Distance, calories, floors (on dense layouts)
+- **Time** (digital, large hero)
+- **Date** (compact format)
+- **Steps** (with goal + progress bar where applicable)
+- **Heart rate** (live from sensor)
+- **Battery** percentage
+- **Temperature** (weather API)
+- **Distance & Calories** (Vitals, Grid only)
 
 ## Project Structure
 
 ```
 smpl-watch/
-├── source/
-│   ├── SmplWatchApp.mc         # App entry point
-│   ├── SmplWatchView.mc        # Main view — dispatches to active face
-│   ├── faces/
-│   │   ├── HorizonFace.mc      # Face 1: Clean minimal
-│   │   ├── VitalsFace.mc       # Face 2: Dense health dashboard
-│   │   ├── StrataFace.mc       # Face 3: Layered bands
-│   │   ├── SignalFace.mc       # Face 4: Minimal data-viz
-│   │   ├── TacticalFace.mc     # Face 5: Military field watch
-│   │   ├── RetroLcdFace.mc     # Face 6: Amber LCD segments
-│   │   └── GridFace.mc         # Face 7: 2x3 stat grid
-│   └── helpers/
-│       ├── Colors.mc           # Color constants + AOD palette
-│       ├── Data.mc             # Data access (steps, HR, battery, etc.)
-│       └── Draw.mc             # Shared drawing utilities
-├── resources/
-│   ├── drawables/              # Icons and images
-│   ├── layouts/                # XML layouts
-│   ├── settings/               # User-configurable settings (face selection)
-│   └── strings/                # Localized strings
-├── mockups/                    # HTML mockup with all 20 concepts
-├── assets/                     # QC screenshots
-├── docs/                       # Design requirements and decisions
-├── manifest.xml                # Connect IQ manifest (targets venu3s)
-└── monkey.jungle               # Build configuration
+├── apps/                                  # 7 independent Connect IQ apps
+│   ├── horizon/
+│   │   ├── source/
+│   │   │   ├── HorizonApp.mc              # App entry point
+│   │   │   ├── HorizonView.mc             # Watch face view
+│   │   │   ├── faces/HorizonFace.mc       # Drawing logic
+│   │   │   ├── Colors.mc                  # (shared, copied)
+│   │   │   ├── Data.mc                    # (shared, copied)
+│   │   │   └── Draw.mc                    # (shared, copied)
+│   │   ├── resources/                     # Icons, layouts, strings
+│   │   ├── bin/horizon.prg                # Compiled app (ready for sideload)
+│   │   ├── manifest.xml                   # Unique app ID per face
+│   │   └── monkey.jungle                  # Build config
+│   ├── vitals/                            # Same structure × 6
+│   ├── strata/
+│   ├── signal/
+│   ├── tactical/
+│   ├── retro_lcd/
+│   └── grid/
+├── shared/                                # Source files (copied into each app)
+│   ├── Colors.mc                          # Color constants + AOD palette
+│   ├── Data.mc                            # Data access (steps, HR, battery, temp)
+│   └── Draw.mc                            # Shared drawing utilities
+├── mockups/                               # HTML mockup with all 20 design concepts
+├── DESIGN_IMPROVEMENTS.md                 # Design spec and layout details
+├── README.md                              # This file
+└── keys/
+    └── developer_key.der                  # Signing key (gitignored)
 ```
 
 ## Setup & Building
@@ -87,68 +89,87 @@ Install the [Monkey C extension](https://marketplace.visualstudio.com/items?item
 # Save the .der file securely — you can't update published apps without it
 ```
 
-### 4. Build & Run in Simulator
+### 4. Build All 7 Apps
 
 ```bash
-# Option A: VS Code (recommended)
-# 1. Open this project folder in VS Code
-# 2. Cmd+Shift+P → "Monkey C: Build for Device" → select "venu3s"
-# 3. Press F5 to run in the simulator
-#    (or Cmd+Shift+P → "Monkey C: Run")
+# Build all 7 apps at once:
+for app in horizon vitals strata signal tactical retro_lcd grid; do
+  cd apps/$app
+  monkeyc -d venu3s -f monkey.jungle -o bin/${app}.prg -y ../../keys/developer_key.der
+  cd ../..
+done
 
-# Option B: Command line
-monkeyc -d venu3s -f monkey.jungle -o bin/smpl-watch.prg -y /path/to/developer_key.der
-connectiq  # launches simulator
-monkeydo bin/smpl-watch.prg venu3s  # loads app in simulator
+# The .prg files will be in:
+# apps/horizon/bin/horizon.prg
+# apps/vitals/bin/vitals.prg
+# ... etc
 ```
 
-### 5. Switching Watch Faces
+### 5. Test in Simulator (Optional)
 
-The app includes 7 face designs. To switch between them:
+```bash
+# Launch Garmin simulator
+connectiq
 
-**In the Simulator:**
-- Settings → smpl watch → Watch Face → select design
+# Load an app in the simulator
+monkeydo apps/horizon/bin/horizon.prg venu3s
 
-**On the Watch (via Garmin Connect Mobile):**
-1. Open Garmin Connect app on your phone
-2. Go to your device → Appearance → Watch Face
-3. Tap the settings gear on "smpl watch"
-4. Select your preferred face design
+# Switch faces in the simulator:
+# Settings → [App Name] → [any app-specific settings]
+```
 
-**On the Watch (direct):**
-1. Long-press the touchscreen on the watch face
-2. Swipe to "smpl watch"
-3. Tap the settings icon to change the layout
+### 6. Sideload to Watch
 
-## Loading onto Your Watch
+See **Sideloading to Your Watch** section above. Use OpenMTP to copy `.prg` files to `GARMIN/APPS/`.
 
-### Option A: USB Sideload (fastest for development)
+## Sideloading to Your Watch (7 Apps)
 
-1. Connect your Venu 3S to your Mac via USB
-2. It should mount as a USB drive (like `GARMIN`)
-3. Build: VS Code → Cmd+Shift+P → "Monkey C: Export Project"
-4. Copy the `.prg` file to `GARMIN/APPS/` on the watch drive
-5. Safely eject the drive
-6. On the watch: long-press watch face → find "smpl watch"
+Each face is a **separate, independent app**. You need to sideload the `.prg` files you want.
 
-### Option B: Garmin Connect IQ Store
+### Step-by-Step: USB Sideload with OpenMTP (Recommended)
 
-1. Create a developer account at [developer.garmin.com](https://developer.garmin.com)
-2. Export: VS Code → Cmd+Shift+P → "Monkey C: Export Project" (creates `.iq` file)
-3. Upload at [apps.garmin.com/developer](https://apps.garmin.com/developer)
-4. Once approved, install via Garmin Connect Mobile → Connect IQ Store
+1. **Connect Venu 3S to Mac via USB** (USB cable, not wireless)
+2. **Open OpenMTP** (free app available on Mac App Store)
+   - It will mount your watch as a USB drive
+3. **Copy the .prg files** you want from `apps/*/bin/*.prg`
+   - Navigate to: `GARMIN/APPS/` on the watch drive
+   - Copy (e.g.) `horizon.prg`, `tactical.prg`, `grid.prg` — pick your favorites
+4. **Safely eject** the watch from OpenMTP
+5. **On the watch:**
+   - Tap Apps
+   - Scroll down to find your new watch faces (by name)
+   - Tap to select the watch face
+   - Long-press to set as active
 
-### Option C: Wireless via Garmin Express
+### Alternative: Garmin Connect Mobile
 
-1. Install [Garmin Express](https://www.garmin.com/express) on your Mac
-2. Connect watch via USB, pair with Garmin Express
-3. Use the Connect IQ app manager to sideload the `.prg` file
+1. Open Garmin Connect Mobile on your phone
+2. Pair your Venu 3S (if not already)
+3. Go to Device Settings → Watch Face
+4. You should see any sideloaded apps listed
+5. Tap to select
 
-## Changing the Active Face
+### All 7 Pre-Built .prg Files
 
-The active face design is stored as a setting. You can change it:
-- Through the Garmin Connect Mobile app (Settings for the watch face)
-- Through the simulator's settings panel during development
+```
+apps/horizon/bin/horizon.prg          (112K) — Clean minimal, battery arc
+apps/vitals/bin/vitals.prg            (112K) — Health dashboard
+apps/strata/bin/strata.prg            (112K) — 3-band layout
+apps/signal/bin/signal.prg            (111K) — Concentric rings
+apps/tactical/bin/tactical.prg        (112K) — Military aesthetic
+apps/retro_lcd/bin/retro_lcd.prg      (112K) — Amber segments
+apps/grid/bin/grid.prg                (112K) — 2x3 grid
+```
+
+All files are under the 128KB limit. **Just copy the ones you want to `GARMIN/APPS/` on your watch.**
+
+## Switching Between Installed Watch Faces
+
+Once sideloaded, each app appears as a separate watch face:
+
+- **On the watch:** Long-press the current watch face → Swipe/scroll → Tap the face you want
+- **In Garmin Connect Mobile:** Apps → Watch Faces → Select
+- **Quick tap:** Once active, quick-tap the watch face to cycle to the next one
 
 ## Development Notes
 
