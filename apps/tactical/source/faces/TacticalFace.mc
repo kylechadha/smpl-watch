@@ -18,58 +18,47 @@ class TacticalFace {
         // Minute ticks
         Draw.ticks(dc, 60, R - 8, R - 2, aod ? 0x111111 : 0x1A1A1A, 1);
 
-        // Hour markers — thicker, olive colored
-        dc.setPenWidth(2);
-        for (var i = 0; i < 12; i++) {
-            var angle = (i * 30.0 - 90.0) * Math.PI / 180.0;
-            var cos = Math.cos(angle);
-            var sin = Math.sin(angle);
-            dc.setColor(aod ? 0x222222 : olive, Colors.BLACK);
-            dc.drawLine(
-                CX + ((R - 16) * cos).toNumber(),
-                CY + ((R - 16) * sin).toNumber(),
-                CX + ((R - 2) * cos).toNumber(),
-                CY + ((R - 2) * sin).toNumber()
-            );
+        // Hour markers (active only)
+        if (!aod) {
+            dc.setPenWidth(2);
+            for (var i = 0; i < 12; i++) {
+                var angle = (i * 30.0 - 90.0) * Math.PI / 180.0;
+                var cos = Math.cos(angle);
+                var sin = Math.sin(angle);
+                dc.setColor(olive, Colors.BLACK);
+                dc.drawLine(
+                    CX + ((R - 16) * cos).toNumber(),
+                    CY + ((R - 16) * sin).toNumber(),
+                    CX + ((R - 2) * cos).toNumber(),
+                    CY + ((R - 2) * sin).toNumber()
+                );
+            }
         }
 
-        // Time — bold monospace
-        Draw.text(dc, Data.getTimeString(), CX, CY - 30,
+        // Date — military format
+        Draw.text(dc, Data.getMilitaryDate(), CX, 75,
+            Graphics.FONT_XTINY, dimO);
+
+        // Time — HERO
+        Draw.text(dc, Data.getTimeString(), CX, 155,
             Graphics.FONT_NUMBER_HOT, sand);
 
-        // Date — military format
-        Draw.text(dc, Data.getMilitaryDate(), CX, CY + 12,
-            Graphics.FONT_XTINY, dimO);
+        // Divider
+        Draw.hline(dc, 85, 190, S - 85, dimO);
 
-        // Separator
-        Draw.hline(dc, 85, CY + 30, S - 85, dimO);
-
-        // Key:value data block — centered columns
-        var col1 = CX - 15;
-        var col2 = CX + 15;
-        var baseY = CY + 52;
-        var rowH = 22;
-
-        Draw.textRight(dc, "STEPS", col1, baseY,
-            Graphics.FONT_XTINY, dimO);
-        Draw.textLeft(dc, Data.formatNumber(Data.getSteps()), col2, baseY,
+        // Data rows
+        Draw.textLeft(dc, "STEPS: " + Data.formatNumber(Data.getSteps()), 85, 220,
             Graphics.FONT_XTINY, sand);
 
         var hrVal = Data.getHeartRate();
-        var hrStr = (hrVal > 0) ? hrVal.format("%d") + " BPM" : "-- BPM";
-        Draw.textRight(dc, "HR", col1, baseY + rowH,
-            Graphics.FONT_XTINY, dimO);
-        Draw.textLeft(dc, hrStr, col2, baseY + rowH,
+        var hrStr = (hrVal > 0) ? hrVal.format("%d") + " bpm" : "-- bpm";
+        Draw.textLeft(dc, "HEART: " + hrStr, 85, 250,
             Graphics.FONT_XTINY, sand);
 
-        Draw.textRight(dc, "BAT", col1, baseY + rowH * 2,
-            Graphics.FONT_XTINY, dimO);
-        Draw.textLeft(dc, Data.getBattery().format("%d") + "%", col2, baseY + rowH * 2,
+        Draw.textLeft(dc, "BAT: " + Data.getBattery().format("%d") + "%", 85, 310,
             Graphics.FONT_XTINY, sand);
 
-        Draw.textRight(dc, "SUNSET", col1, baseY + rowH * 3,
-            Graphics.FONT_XTINY, dimO);
-        Draw.textLeft(dc, Data.getSunEvent(), col2, baseY + rowH * 3,
+        Draw.textLeft(dc, "TEMP: " + Data.getTemperature() + "°F", 85, 340,
             Graphics.FONT_XTINY, sand);
     }
 }

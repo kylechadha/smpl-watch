@@ -15,7 +15,7 @@ module Colors {
     const TEAL   = 0x2DD4BF;
     const ACCENT = 0x818CF8;
     const TRACK  = 0x111111;
-    const LABEL  = 0x2A2A2A;
+    const LABEL  = 0x999999;
     const BLACK  = 0x000000;
     const TRANS  = Graphics.COLOR_TRANSPARENT;
 
@@ -84,5 +84,9 @@ module Colors {
 
     function label(aod as Boolean) as Number {
         return aod ? AOD_LABEL : LABEL;
+    }
+
+    function temp(aod as Boolean) as Number {
+        return aod ? AOD_ACC : TEAL;
     }
 }

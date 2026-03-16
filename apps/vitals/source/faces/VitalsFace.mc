@@ -1,73 +1,47 @@
 import Toybox.Graphics;
 import Toybox.Lang;
 
-// Face 3: Vitals — Dense health dashboard with sparklines and both bars
+// Face 3: Vitals — Simplified health dashboard
 class VitalsFace {
-
-    // Store recent HR samples for sparkline
-    var _hrHistory as Array<Number>;
-
-    function initialize() {
-        _hrHistory = [68, 70, 72, 74, 70, 68, 72, 76, 78, 74, 72, 70, 68, 72, 74, 76];
-    }
 
     function draw(dc as Dc, aod as Boolean) as Void {
         var S = Draw.S;
         var CX = Draw.CX;
 
-        // Time (smaller to make room for data)
-        Draw.text(dc, Data.getTimeString(), CX, 80,
+        // Time — HERO
+        Draw.text(dc, Data.getTimeString(), CX, 50,
             Graphics.FONT_NUMBER_HOT, Colors.time(aod));
 
         // Date
-        Draw.text(dc, Data.getDateCompact(), CX, 115,
+        Draw.text(dc, Data.getDateCompact(), CX, 95,
             Graphics.FONT_XTINY, Colors.date(aod));
 
         // Separator
-        Draw.hline(dc, 80, 132, S - 80, Colors.sep(aod));
+        Draw.hline(dc, 70, 110, S - 70, Colors.sep(aod));
 
-        // Steps bar
-        var steps = Data.getSteps();
-        var stepGoal = Data.getStepGoal();
-        Draw.textLeft(dc, Data.formatNumber(steps), 90, 152,
-            Graphics.FONT_XTINY, Colors.steps(aod));
-        Draw.textRight(dc, "/ " + Data.formatNumber(stepGoal), S - 90, 152,
+        // Steps
+        Draw.textLeft(dc, "STEPS", 70, 130,
             Graphics.FONT_XTINY, Colors.label(aod));
-        Draw.bar(dc, 90, 165, S - 180, 5, Data.getStepProgress(),
+        Draw.textRight(dc, Data.formatNumber(Data.getSteps()) + " / " + Data.formatNumber(Data.getStepGoal()), S - 70, 130,
+            Graphics.FONT_XTINY, Colors.steps(aod));
+        Draw.bar(dc, 70, 150, S - 140, 4, Data.getStepProgress(),
             Colors.track(aod), aod ? Colors.dim(aod) : Colors.STEPS);
 
-        // Battery bar
-        Draw.textLeft(dc, Data.getBattery().format("%d") + "%", 90, 190,
-            Graphics.FONT_XTINY, Colors.bat(aod));
-        Draw.bar(dc, 90, 203, S - 180, 5, Data.getBatteryFloat(),
-            Colors.track(aod), aod ? Colors.dim(aod) : Colors.BAT);
-
-        // Separator
-        Draw.hline(dc, 80, 218, S - 80, Colors.sep(aod));
-
-        // Health stats 2x2 grid
+        // Heart
+        Draw.textLeft(dc, "HEART", 70, 180,
+            Graphics.FONT_XTINY, Colors.label(aod));
         var hrVal = Data.getHeartRate();
         var hrStr = (hrVal > 0) ? hrVal.format("%d") + " bpm" : "-- bpm";
-        Draw.text(dc, hrStr, CX - 55, 240,
+        Draw.textRight(dc, hrStr, S - 70, 180,
             Graphics.FONT_XTINY, Colors.hr(aod));
-        Draw.text(dc, Data.formatNumber(Data.getCalories()) + " cal", CX + 55, 240,
-            Graphics.FONT_XTINY, Colors.sun(aod));
-
-        Draw.text(dc, Data.getDistance() + " mi", CX - 55, 268,
-            Graphics.FONT_XTINY, Colors.teal(aod));
-        Draw.text(dc, Data.getFloors().format("%d") + " fl", CX + 55, 268,
-            Graphics.FONT_XTINY, Colors.accent(aod));
 
         // Separator
-        Draw.hline(dc, 80, 286, S - 80, Colors.sep(aod));
+        Draw.hline(dc, 70, 195, S - 70, Colors.sep(aod));
 
-        // HR sparkline (active mode only)
-        if (!aod) {
-            Draw.text(dc, "HR 6h", CX, 300,
-                Graphics.FONT_XTINY, Colors.label(aod));
-
-            // Display sparkline of sample HR history
-            Draw.sparkline(dc, 90, 310, S - 180, 30, _hrHistory, Colors.HR);
-        }
+        // Battery + Temperature
+        Draw.textLeft(dc, "BAT: " + Data.getBattery().format("%d") + "%", 70, 220,
+            Graphics.FONT_XTINY, Colors.bat(aod));
+        Draw.textRight(dc, "TEMP: " + Data.getTemperature() + "°F", S - 70, 220,
+            Graphics.FONT_XTINY, Colors.temp(aod));
     }
 }

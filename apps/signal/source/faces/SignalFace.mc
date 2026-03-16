@@ -1,7 +1,7 @@
 import Toybox.Graphics;
 import Toybox.Lang;
 
-// Face 10: Signal — Minimal data-viz with indigo gradient accent bar
+// Face 10: Signal — Minimal data-viz with concentric rings
 class SignalFace {
 
     function draw(dc as Dc, aod as Boolean) as Void {
@@ -9,7 +9,7 @@ class SignalFace {
         var CX = Draw.CX;
         var CY = Draw.CY;
 
-        // Subtle concentric rings (active only)
+        // Concentric rings (active only)
         if (!aod) {
             dc.setColor(0x080808, Colors.BLACK);
             dc.setPenWidth(1);
@@ -20,37 +20,28 @@ class SignalFace {
             }
         }
 
-        // Sunset — top right
-        Draw.textRight(dc, Data.getSunIcon() + " " + Data.getSunEvent(), S - 85, 78,
-            Graphics.FONT_XTINY, Colors.sun(aod));
-
-        // Time — large, light
-        Draw.text(dc, Data.getTimeString(), CX, CY - 38,
-            Graphics.FONT_NUMBER_THAI_HOT, Colors.time(aod));
-
         // Date
-        Draw.text(dc, Data.getDateString(), CX, CY + 18,
-            Graphics.FONT_TINY, Colors.date(aod));
+        Draw.text(dc, Data.getDateCompact(), CX, 80,
+            Graphics.FONT_XTINY, Colors.date(aod));
 
-        // Gradient accent line (simplified — just a colored line in Monkey C)
-        if (!aod) {
-            dc.setColor(Colors.ACCENT, Colors.BLACK);
-            dc.setPenWidth(2);
-            dc.drawLine(CX - 100, CY + 42, CX + 100, CY + 42);
-        } else {
-            Draw.hline(dc, CX - 80, CY + 42, CX + 80, Colors.dim(aod));
-        }
+        // Time — HERO
+        Draw.text(dc, Data.getTimeString(), CX, 160,
+            Graphics.FONT_NUMBER_HOT, Colors.time(aod));
 
         // Steps hero
-        Draw.text(dc, Data.formatNumber(Data.getSteps()) + " steps", CX, CY + 72,
-            Graphics.FONT_SMALL, Colors.accent(aod));
+        var steps = Data.getSteps();
+        Draw.text(dc, Data.formatNumber(steps) + " STEPS", CX, 230,
+            Graphics.FONT_SMALL, Colors.steps(aod));
 
-        // Bottom row — HR + battery
+        // HR + Temp + Battery
         var hrVal = Data.getHeartRate();
-        var hrStr = (hrVal > 0) ? hrVal.format("%d") : "--";
-        Draw.text(dc, hrStr, CX - 65, CY + 108,
+        var hrStr = (hrVal > 0) ? hrVal.format("%d") + " bpm" : "-- bpm";
+        Draw.textLeft(dc, hrStr, 70, 290,
             Graphics.FONT_TINY, Colors.hr(aod));
-        Draw.text(dc, Data.getBattery().format("%d") + "%", CX + 65, CY + 108,
-            Graphics.FONT_TINY, Colors.bat(aod));
+        Draw.textRight(dc, Data.getTemperature() + "°F", S - 70, 290,
+            Graphics.FONT_TINY, Colors.temp(aod));
+
+        Draw.text(dc, "BAT: " + Data.getBattery().format("%d") + "%", CX, 320,
+            Graphics.FONT_XTINY, Colors.bat(aod));
     }
 }

@@ -180,6 +180,25 @@ module Data {
         return (info.floorsClimbed != null) ? info.floorsClimbed : 0;
     }
 
+    function getTemperature() as String {
+        if (Weather has :getCurrentConditions) {
+            try {
+                var cond = Weather.getCurrentConditions();
+                if (cond != null && cond has :temperature) {
+                    var temp = cond.temperature;
+                    if (temp != null) {
+                        // Convert celsius to fahrenheit if needed (Garmin returns celsius)
+                        var f = (temp * 9.0 / 5.0) + 32.0;
+                        return f.format("%d");
+                    }
+                }
+            } catch (e) {
+                // Weather unavailable
+            }
+        }
+        return "--";
+    }
+
     function formatNumber(n as Number) as String {
         if (n >= 10000) {
             return (n / 1000).format("%d") + "," + (n % 1000).format("%03d");
