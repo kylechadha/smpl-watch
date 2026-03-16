@@ -125,17 +125,6 @@ module Data {
             }
         }
 
-        // Fallback: try device location if available
-        if (loc == null && Position has :getCurrentLocation) {
-            try {
-                var pos = Position.getCurrentLocation();
-                if (pos != null && pos.valid) {
-                    loc = pos;
-                }
-            } catch (e) {
-                loc = null;
-            }
-        }
 
         // If we don't have a valid location, return placeholder
         if (loc == null) {

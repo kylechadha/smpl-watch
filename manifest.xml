@@ -6,7 +6,6 @@
             <iq:product id="venu3s" />
         </iq:products>
         <iq:permissions>
-            <iq:uses-permission id="LOCATION" />
         </iq:permissions>
         <iq:languages>
             <iq:language>eng</iq:language>

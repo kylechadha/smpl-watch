@@ -1,5 +1,6 @@
 import Toybox.WatchUi;
 import Toybox.Application;
+import Toybox.Lang;
 
 class SettingsDelegate extends WatchUi.InputDelegate {
 
@@ -13,11 +14,8 @@ class SettingsDelegate extends WatchUi.InputDelegate {
     function onKey(keyEvent as KeyEvent) as Boolean {
         var key = keyEvent.getKey();
 
-        if (key == WatchUi.KEY_SELECT) {
+        if (key == WatchUi.KEY_ENTER) {
             cycleToNextFace();
-            return true;
-        } else if (key == WatchUi.KEY_BACK) {
-            WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
             return true;
         }
 
@@ -37,10 +35,7 @@ class SettingsDelegate extends WatchUi.InputDelegate {
         // Update UI to show new face
         WatchUi.requestUpdate();
 
-        // Show notification of face change
-        var faceName = _faceNames[nextFace];
-        if (WatchUi has :Tooltip) {
-            WatchUi.showBriefly(faceName);
-        }
+        // Notify that face changed
+        WatchUi.requestUpdate();
     }
 }
