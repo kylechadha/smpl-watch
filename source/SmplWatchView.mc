@@ -43,6 +43,9 @@ class SmplWatchView extends WatchUi.WatchFace {
         // Draw the active face
         var face = _faces[faceIdx];
         face.draw(dc, !_isAwake);
+
+        // Clear clip region
+        dc.clearClip();
     }
 
     function onEnterSleep() as Void {

@@ -66,16 +66,7 @@ class VitalsFace {
             Draw.text(dc, "HR 6h", CX, 300,
                 Graphics.FONT_XTINY, Colors.label(aod));
 
-            // Update HR history with current value
-            var currentHr = Data.getHeartRate();
-            if (currentHr > 0) {
-                // Shift left and add new value
-                for (var i = 0; i < _hrHistory.size() - 1; i++) {
-                    _hrHistory[i] = _hrHistory[i + 1];
-                }
-                _hrHistory[_hrHistory.size() - 1] = currentHr;
-            }
-
+            // Display sparkline of sample HR history
             Draw.sparkline(dc, 90, 310, S - 180, 30, _hrHistory, Colors.HR);
         }
     }

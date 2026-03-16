@@ -18,7 +18,7 @@ class SettingsView extends WatchUi.View {
     function onUpdate(dc as Dc) as Void {
         // Get current active face
         var currentFace = Application.Storage.getValue("ActiveFace");
-        if (currentFace == null) {
+        if (currentFace == null || currentFace < 0 || currentFace >= _faceNames.size()) {
             currentFace = 0;
         }
 

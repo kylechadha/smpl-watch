@@ -163,8 +163,8 @@ module Data {
     function getDistance() as String {
         var info = ActivityMonitor.getInfo();
         if (info.distance != null) {
-            // distance is in cm, convert to miles
-            var miles = info.distance.toFloat() / 160934.0;
+            // distance is in meters, convert to miles
+            var miles = info.distance.toFloat() / 1609.34;
             return miles.format("%.1f");
         }
         return "0.0";

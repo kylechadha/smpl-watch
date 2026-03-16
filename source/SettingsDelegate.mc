@@ -24,7 +24,7 @@ class SettingsDelegate extends WatchUi.InputDelegate {
 
     function cycleToNextFace() as Void {
         var currentFace = Application.Storage.getValue("ActiveFace");
-        if (currentFace == null) {
+        if (currentFace == null || currentFace < 0 || currentFace >= _totalFaces) {
             currentFace = 0;
         }
 
@@ -33,9 +33,6 @@ class SettingsDelegate extends WatchUi.InputDelegate {
         Application.Storage.setValue("ActiveFace", nextFace);
 
         // Update UI to show new face
-        WatchUi.requestUpdate();
-
-        // Notify that face changed
         WatchUi.requestUpdate();
     }
 }
