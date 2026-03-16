@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<iq:manifest xmlns:iq="http://www.garmin.com/xml/connectiq" version="6">
+    <iq:application entry="UstrataApp" id="00000003-3333-3333-3333-333333333333"
+        launcherIcon="@Drawables.LauncherIcon" name="@Strings.AppName" type="watchface">
+        <iq:products>
+            <iq:product id="venu3s" />
+        </iq:products>
+        <iq:permissions></iq:permissions>
+        <iq:languages>
+            <iq:language>eng</iq:language>
+        </iq:languages>
+        <iq:barrels></iq:barrels>
+    </iq:application>
+</iq:manifest>
